@@ -6,11 +6,17 @@ import { TeamTree } from '@/components/teams/TeamTree';
 import { DeleteTeamModal } from '@/components/teams/modals/DeleteTeamModal';
 import { EditTeamModal } from '@/components/teams/modals/EditTeamModal';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTeam, useTeamChildren } from '@/hooks/useTeams';
 import { Team } from '@/lib/types/team';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
-import { ArrowLeft, Edit, Trash, Users } from 'lucide-react';
+import { ArrowLeft, Edit, MoreHorizontal, Pencil, Trash, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -121,14 +127,23 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">{team.name}</h1>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={openEditModal}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Team
-            </Button>
-            <Button variant="destructive" onClick={openDeleteModal}>
-              <Trash className="mr-2 h-4 w-4" />
-              Delete Team
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={openEditModal}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Team
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openDeleteModal} className="text-destructive">
+                  <Trash className="mr-2 h-4 w-4" />
+                  Delete Team
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

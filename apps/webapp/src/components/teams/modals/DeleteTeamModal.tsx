@@ -2,7 +2,7 @@
 
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { useState } from 'react';
-import { useDeleteTeam, useTeam } from '../../../hooks/useTeams';
+import { useDeleteTeam, useTeam, useTeamDescendants } from '../../../hooks/useTeams';
 
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface DeleteTeamModalProps {
   teamId: Id<'teams'> | null;
@@ -29,6 +30,7 @@ export function DeleteTeamModal({ teamId, isOpen, onClose, onSuccess }: DeleteTe
 
   // Get team data and delete function
   const { team } = useTeam(teamId);
+  const { descendants, isLoading: isLoadingDescendants } = useTeamDescendants(teamId);
   const { deleteTeam } = useDeleteTeam();
 
   // Handle team deletion
@@ -55,16 +57,37 @@ export function DeleteTeamModal({ teamId, isOpen, onClose, onSuccess }: DeleteTe
     }
   };
 
+  // Calculate how many child teams will be deleted
+  const childTeamsCount = descendants?.length || 0;
+
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure you want to delete this team?</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="space-y-2">
             {team ? (
               <>
-                This will permanently delete the team "<strong>{team.name}</strong>"
-                {team.parentId ? '' : ' and all its child teams'}. This action cannot be undone.
+                <div>
+                  This will permanently delete the team "<strong>{team.name}</strong>".
+                </div>
+
+                {isLoadingDescendants ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Checking for child teams...</span>
+                  </div>
+                ) : childTeamsCount > 0 ? (
+                  <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-amber-700">
+                    <div className="font-medium">Warning: Child teams will be deleted</div>
+                    <div className="mt-1">
+                      This team has {childTeamsCount} child{' '}
+                      {childTeamsCount === 1 ? 'team' : 'teams'} that will also be deleted.
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="pt-2">This action cannot be undone.</div>
               </>
             ) : (
               'This will permanently delete the team and cannot be undone.'

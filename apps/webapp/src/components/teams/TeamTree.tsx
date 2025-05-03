@@ -138,15 +138,17 @@ function TeamTreeNode({ team, level, onAddChild, onEdit, onDelete }: TeamTreeNod
           <div className="mr-1 h-6 w-6" />
         )}
 
-        <Button
-          className="flex flex-1 cursor-pointer items-center justify-between"
+        {/* biome-ignore lint/a11y/useFocusableInteractive: <explanation> */}
+        <div
+          // biome-ignore lint/a11y/useSemanticElements: <explanation>
+          role="button"
+          className="flex flex-1 cursor-pointer items-center justify-between rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-xs hover:bg-primary/90 transition-all"
           onClick={handleClick}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               handleClick();
             }
           }}
-          tabIndex={0}
           aria-label={`Navigate to ${team.name} team`}
         >
           <span className="font-medium">{team.name}</span>
@@ -156,8 +158,14 @@ function TeamTreeNode({ team, level, onAddChild, onEdit, onDelete }: TeamTreeNod
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 onClick={handleAddChild}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleAddChild(e as unknown as React.MouseEvent);
+                  }
+                }}
+                tabIndex={0}
                 title="Add child team"
               >
                 <Plus className="h-4 w-4" />
@@ -168,8 +176,14 @@ function TeamTreeNode({ team, level, onAddChild, onEdit, onDelete }: TeamTreeNod
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 onClick={handleEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleEdit(e as unknown as React.MouseEvent);
+                  }
+                }}
+                tabIndex={0}
                 title="Edit team"
               >
                 <Edit className="h-4 w-4" />
@@ -178,17 +192,21 @@ function TeamTreeNode({ team, level, onAddChild, onEdit, onDelete }: TeamTreeNod
 
             {onDelete && (
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-destructive"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-sm font-medium text-destructive hover:bg-accent hover:text-destructive"
                 onClick={handleDelete}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleDelete(e as unknown as React.MouseEvent);
+                  }
+                }}
+                tabIndex={0}
                 title="Delete team"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
-        </Button>
+        </div>
       </div>
 
       {isExpanded && hasChildren && (

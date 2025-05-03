@@ -12,7 +12,13 @@ import type { Team } from '../../../lib/types/team';
 import { DashboardCard } from '@/components/dashboard/DashboardCard';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, UserPlus, UsersRound } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Eye, MoreHorizontal, Pencil, Plus, Trash, UserPlus, UsersRound } from 'lucide-react';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 
@@ -75,7 +81,7 @@ export default function TeamsPage() {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
+        <div className="hidden md:grid gap-6 md:grid-cols-3 mb-8">
           <DashboardCard
             title="Total Teams"
             value={teamStats.totalTeams}
@@ -121,49 +127,115 @@ export default function TeamsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Team Name</th>
-                    <th className="px-4 py-2 text-left">Members</th>
-                    <th className="px-4 py-2 text-left">Parent Team</th>
-                    <th className="px-4 py-2 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teams.map((team) => (
-                    <tr key={team._id} className="border-b">
-                      <td className="px-4 py-3">{team.name}</td>
-                      <td className="px-4 py-3">{/* Replace with actual members count */}--</td>
-                      <td className="px-4 py-3">{team.parentId ? 'Has Parent' : '--'}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/app/teams/${team._id}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            View
-                          </Link>
-                          <button
-                            onClick={() => openEditModal(team)}
-                            className="text-amber-600 hover:underline"
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(team)}
-                            className="text-red-600 hover:underline"
-                            type="button"
-                          >
-                            Delete
-                          </button>
+              <div className="min-w-full">
+                {/* Table header - visible on md and larger screens */}
+                <div className="hidden md:flex bg-gray-100 rounded-t-md">
+                  <div className="w-1/3 px-4 py-2 font-medium text-left">Team Name</div>
+                  <div className="w-1/4 px-4 py-2 font-medium text-left">Members</div>
+                  <div className="w-1/4 px-4 py-2 font-medium text-left">Parent Team</div>
+                  <div className="w-1/6 px-4 py-2 font-medium text-left">Actions</div>
+                </div>
+
+                {/* Teams list */}
+                <div className="divide-y">
+                  {teams.map((team) => {
+                    // Create navigation handler that works with the dropdown menu
+                    const navigateToTeam = () => {
+                      window.location.href = `/app/teams/${team._id}`;
+                    };
+
+                    return (
+                      <div
+                        key={team._id}
+                        className="relative flex flex-col md:flex-row md:items-center hover:bg-gray-50 transition-colors"
+                      >
+                        {/* Clickable area that covers the entire row except for the action menu */}
+                        <div
+                          className="absolute inset-0 cursor-pointer z-0"
+                          onClick={navigateToTeam}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              navigateToTeam();
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`View team ${team.name}`}
+                        />
+
+                        {/* Team name - primary information shown on all screens */}
+                        <div className="flex justify-between items-center w-full md:w-1/3 px-4 py-3">
+                          <span className="font-medium text-blue-600">{team.name}</span>
+
+                          {/* Mobile actions - only show on small screens */}
+                          <div className="md:hidden z-10 relative">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={navigateToTeam}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEditModal(team)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openDeleteModal(team)}
+                                  className="text-destructive"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+                        {/* Additional columns - hidden on mobile, visible on md+ screens */}
+                        <div className="hidden md:block w-1/4 px-4 py-3">
+                          {/* Replace with actual members count */}--
+                        </div>
+                        <div className="hidden md:block w-1/4 px-4 py-3">
+                          {team.parentId ? 'Has Parent' : '--'}
+                        </div>
+
+                        {/* Desktop actions - hidden on mobile */}
+                        <div className="hidden md:flex md:w-1/6 px-4 py-3 justify-end z-10 relative">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={navigateToTeam}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEditModal(team)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => openDeleteModal(team)}
+                                className="text-destructive"
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
