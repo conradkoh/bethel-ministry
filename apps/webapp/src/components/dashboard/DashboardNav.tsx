@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useAuthState } from '@/modules/auth/AuthProvider';
 import { Calendar, ChevronRight, Home, Menu, Settings, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '../../lib/utils';
 
 interface NavItem {
@@ -17,6 +18,31 @@ interface NavItem {
 export function DashboardNav() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const authState = useAuthState();
+  const isAuthenticated = authState?.state === 'authenticated';
+
+  // Close mobile menu on path change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we want the menu to close when the path changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Close mobile menu on ESC key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMobileMenuOpen]);
 
   // Helper function to check if the current path matches a route pattern
   const isRouteActive = (href: string) => {
@@ -60,40 +86,67 @@ export function DashboardNav() {
 
   return (
     <>
-      {/* Mobile Navigation Toggle */}
-      <div className="flex items-center lg:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle Menu"
-        >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background pt-16 lg:hidden">
-          <div className="container mx-auto px-4">
-            <nav className="flex flex-col space-y-1">
-              {navItems.map((item) => (
-                <MobileNavLink
-                  key={item.href}
-                  item={item}
-                  isActive={isRouteActive(item.href)}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                />
-              ))}
-            </nav>
-          </div>
+      {/* Mobile Navigation Toggle Button - only show when authenticated */}
+      {isAuthenticated && (
+        <div className="fixed bottom-6 left-6 z-40 block lg:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            className={`rounded-full shadow-md ${isMobileMenuOpen ? 'hidden' : 'flex'}`}
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
+      )}
+
+      {/* Mobile Navigation Menu and Backdrop */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setIsMobileMenuOpen(false);
+              }
+            }}
+          />
+
+          {/* Menu */}
+          <div className="fixed inset-y-0 left-0 z-50 flex flex-col w-3/4 max-w-xs bg-background lg:hidden">
+            <div className="flex items-center justify-between p-3 border-b">
+              <div className="text-base font-medium">Navigation</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+                aria-label="Close Menu"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <nav className="py-3 px-3">
+                {navItems.map((item) => (
+                  <MobileNavLink
+                    key={item.href}
+                    item={item}
+                    isActive={isRouteActive(item.href)}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  />
+                ))}
+              </nav>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Desktop Navigation */}
       <nav className="hidden h-full w-64 flex-col border-r bg-background px-3 py-4 lg:flex">
-        <div className="mb-10 px-4 text-xl font-bold">Bethel Ministry</div>
-        <div className="space-y-1">
+        <div className="space-y-1 mt-6">
           {navItems.map((item) => (
             <DesktopNavLink key={item.href} item={item} isActive={isRouteActive(item.href)} />
           ))}
@@ -145,15 +198,15 @@ function MobileNavLink({
       rel={item.isExternal ? 'noopener noreferrer' : undefined}
       onClick={onClick}
       className={cn(
-        'flex items-center rounded-md px-3 py-4 text-lg font-medium transition-colors',
+        'flex items-center rounded-md px-3 py-2.5 text-base font-medium transition-colors mb-1',
         isActive
           ? 'bg-primary text-primary-foreground'
           : 'hover:bg-muted text-muted-foreground hover:text-foreground'
       )}
     >
       {item.icon}
-      <span className="ml-3">{item.title}</span>
-      {item.isExternal && <ChevronRight className="ml-auto h-5 w-5 opacity-70" />}
+      <span className="ml-2.5">{item.title}</span>
+      {item.isExternal && <ChevronRight className="ml-auto h-4 w-4 opacity-70" />}
     </Link>
   );
 }
