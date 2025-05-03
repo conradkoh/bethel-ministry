@@ -128,3 +128,19 @@ export const useDeleteTeam = () => {
     },
   };
 };
+
+/**
+ * Hook to get all descendants of a team (children, grandchildren, etc.)
+ */
+export const useTeamDescendants = (teamId: Id<'teams'> | null) => {
+  const descendants = useSessionQuery(
+    api.teams.getTeamDescendants,
+    teamId ? { id: teamId } : 'skip'
+  );
+
+  return {
+    descendants,
+    isLoading: teamId && descendants === undefined,
+    error: descendants === null ? 'Failed to load team descendants' : null,
+  };
+};

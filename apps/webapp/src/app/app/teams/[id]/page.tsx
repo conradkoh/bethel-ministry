@@ -1,10 +1,13 @@
 'use client';
 
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { TeamCard } from '@/components/teams/TeamCard';
+import { TeamTree } from '@/components/teams/TeamTree';
 import { DeleteTeamModal } from '@/components/teams/modals/DeleteTeamModal';
 import { EditTeamModal } from '@/components/teams/modals/EditTeamModal';
 import { Button } from '@/components/ui/button';
-import { useTeam } from '@/hooks/useTeams';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useTeam, useTeamChildren } from '@/hooks/useTeams';
 import { Team } from '@/lib/types/team';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { ArrowLeft, Edit, Trash, Users } from 'lucide-react';
@@ -19,6 +22,8 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [childTeamToEdit, setChildTeamToEdit] = useState<Id<'teams'> | null>(null);
+  const [childTeamToDelete, setChildTeamToDelete] = useState<Id<'teams'> | null>(null);
 
   // Get the ID from params
   useEffect(() => {
@@ -34,6 +39,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
 
   // Fetch team data
   const { team, isLoading, error } = useTeam(teamId);
+  const { children: childTeams, isLoading: isLoadingChildren } = useTeamChildren(teamId);
 
   // Modal handlers
   const openEditModal = () => setIsEditModalOpen(true);
@@ -41,6 +47,18 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
 
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
+
+  // Child team modal handlers
+  const handleEditChildTeam = (id: Id<'teams'>) => {
+    setChildTeamToEdit(id);
+  };
+
+  const handleDeleteChildTeam = (id: Id<'teams'>) => {
+    setChildTeamToDelete(id);
+  };
+
+  const closeChildEditModal = () => setChildTeamToEdit(null);
+  const closeChildDeleteModal = () => setChildTeamToDelete(null);
 
   // Handle successful deletion
   const handleDeleteSuccess = () => {
@@ -168,9 +186,40 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
 
-          <div className="text-center py-8 text-gray-500">
-            <p>No child teams found</p>
-          </div>
+          {isLoadingChildren ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-md" />
+              ))}
+            </div>
+          ) : childTeams && childTeams.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {childTeams.map((child) => (
+                <TeamCard
+                  key={child._id}
+                  team={child}
+                  onEdit={() => handleEditChildTeam(child._id)}
+                  onDelete={() => handleDeleteChildTeam(child._id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No child teams found</p>
+              <p className="text-sm mt-2">Add a child team to start building your hierarchy</p>
+            </div>
+          )}
+        </div>
+
+        {/* Team Hierarchy */}
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-4">Team Hierarchy</h2>
+          <TeamTree
+            teamId={team._id}
+            onAddChild={(parentId) => router.push(`/app/teams/create?parentId=${parentId}`)}
+            onEdit={handleEditChildTeam}
+            onDelete={handleDeleteChildTeam}
+          />
         </div>
       </div>
 
@@ -188,6 +237,25 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         onClose={closeDeleteModal}
         onSuccess={handleDeleteSuccess}
       />
+
+      {/* Child Team Modals */}
+      {childTeamToEdit && (
+        <EditTeamModal
+          teamId={childTeamToEdit}
+          isOpen={!!childTeamToEdit}
+          onClose={closeChildEditModal}
+          onSuccess={closeChildEditModal}
+        />
+      )}
+
+      {childTeamToDelete && (
+        <DeleteTeamModal
+          teamId={childTeamToDelete}
+          isOpen={!!childTeamToDelete}
+          onClose={closeChildDeleteModal}
+          onSuccess={closeChildDeleteModal}
+        />
+      )}
     </DashboardLayout>
   );
 }

@@ -57,9 +57,11 @@ export default defineSchema({
     timezone: v.string(), // Team timezone
     ownerId: v.id('users'), // User who owns the team
     parentId: v.optional(v.id('teams')), // Parent team ID (null for root teams)
+    path: v.string(), // Hierarchical path string (format: /id1/id2/id3/)
     createdAt: v.number(), // Timestamp when team was created
     updatedAt: v.number(), // Timestamp when team was last updated
   })
     .index('by_parent', ['parentId']) // For easy fetching of child teams
-    .index('by_owner', ['ownerId']), // For fetching teams owned by a user
+    .index('by_owner', ['ownerId']) // For fetching teams owned by a user
+    .index('by_path', ['path']), // For efficient hierarchical queries
 });

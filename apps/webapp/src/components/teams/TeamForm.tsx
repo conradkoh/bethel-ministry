@@ -57,7 +57,7 @@ export function TeamForm({ parentId, initialData, teamId, onSuccess, onCancel }:
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: initialData?.name || '',
-      timezone: initialData?.timezone || 'UTC',
+      timezone: initialData?.timezone || 'Asia/Singapore',
     },
   });
 
@@ -66,7 +66,7 @@ export function TeamForm({ parentId, initialData, teamId, onSuccess, onCancel }:
     if (initialData) {
       form.reset({
         name: initialData.name || '',
-        timezone: initialData.timezone || 'UTC',
+        timezone: initialData.timezone || 'Asia/Singapore',
       });
     }
   }, [form, initialData]);

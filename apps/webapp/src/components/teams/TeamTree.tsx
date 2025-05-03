@@ -4,7 +4,7 @@ import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import type { TeamHierarchy } from '@workspace/backend/convex/teams';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTeamHierarchy } from '../../hooks/useTeams';
+import { useTeam, useTeamChildren, useTeamDescendants } from '../../hooks/useTeams';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,13 +18,17 @@ interface TeamTreeProps {
 }
 
 export function TeamTree({ teamId, onAddChild, onEdit, onDelete }: TeamTreeProps) {
-  const { teamHierarchy, isLoading, error } = useTeamHierarchy(teamId);
+  const { team, isLoading: isTeamLoading } = useTeam(teamId);
+  const { descendants, isLoading: isDescendantsLoading } = useTeamDescendants(teamId);
 
+  const isLoading = isTeamLoading || isDescendantsLoading;
+
+  // Return loading skeleton if any data is still loading
   if (isLoading) {
     return <TeamTreeSkeleton />;
   }
 
-  if (error || !teamHierarchy) {
+  if (!team) {
     return (
       <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-destructive">
         Failed to load team hierarchy
@@ -32,12 +36,43 @@ export function TeamTree({ teamId, onAddChild, onEdit, onDelete }: TeamTreeProps
     );
   }
 
+  // Build a team hierarchy from the team and its descendants
+  const rootTeam: TeamHierarchy = {
+    ...team,
+    children: [],
+  };
+
+  // Map to hold all teams by ID for easy lookup
+  const teamsMap = new Map<string, TeamHierarchy>();
+  teamsMap.set(team._id, rootTeam);
+
+  // Process descendants (if available)
+  if (descendants && descendants.length > 0) {
+    // First pass: Create all team nodes
+    for (const descendant of descendants) {
+      const node: TeamHierarchy = { ...descendant, children: [] };
+      teamsMap.set(descendant._id, node);
+    }
+
+    // Second pass: Connect parent-child relationships
+    for (const descendant of descendants) {
+      if (!descendant.parentId) continue;
+
+      const node = teamsMap.get(descendant._id);
+      const parentNode = teamsMap.get(String(descendant.parentId));
+
+      if (node && parentNode && !parentNode.children.some((c) => c._id === node._id)) {
+        parentNode.children.push(node);
+      }
+    }
+  }
+
   return (
     <div className="rounded-md border p-4">
       <h3 className="mb-4 text-lg font-medium">Team Hierarchy</h3>
       <div className="space-y-2">
         <TeamTreeNode
-          team={teamHierarchy}
+          team={rootTeam}
           level={0}
           onAddChild={onAddChild}
           onEdit={onEdit}

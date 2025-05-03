@@ -12,6 +12,7 @@ export interface Team {
   timezone: string;
   ownerId: Id<'users'>;
   parentId?: Id<'teams'>;
+  path: string; // Hierarchical path string (format: /id1/id2/id3/)
   createdAt: number;
   updatedAt: number;
 }
@@ -40,14 +41,5 @@ export interface TimezoneOption {
  * Common timezone options
  */
 export const TIMEZONE_OPTIONS: TimezoneOption[] = [
-  { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'Europe/London', label: 'London (GMT)' },
-  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
-  { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
   { value: 'Asia/Singapore', label: 'Singapore Time (SGT)' },
-  { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
 ];

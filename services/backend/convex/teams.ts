@@ -161,12 +161,18 @@ export const createTeam = mutation({
     // Get the current user
     const user = await getAuthUser(ctx, args);
 
-    // If parentId is provided, verify it exists
+    // Initialize path as an empty string (will be built based on parent and self)
+    let path = '/';
+
+    // If parentId is provided, verify it exists and get its path
     if (args.parentId) {
       const parentTeam = await ctx.db.get(args.parentId);
       if (!parentTeam) {
         throw new Error('Parent team not found');
       }
+
+      // Inherit the parent's path
+      path = parentTeam.path;
     }
 
     // Create the team
@@ -176,8 +182,16 @@ export const createTeam = mutation({
       timezone: args.timezone,
       ownerId: user._id,
       parentId: args.parentId,
+      path, // Initial path (will update after creation to include own ID)
       createdAt: now,
       updatedAt: now,
+    });
+
+    // Update the path to include the team's own ID
+    // Format: /parent_id/team_id/ or /team_id/ for root teams
+    const updatedPath = `${path}${teamId}/`;
+    await ctx.db.patch(teamId, {
+      path: updatedPath,
     });
 
     return teamId;
@@ -231,7 +245,7 @@ export const updateTeam = mutation({
 /**
  * Delete a team with the given ID.
  * Only the owner of the team can delete it.
- * This will also delete all child teams.
+ * This will also delete all descendant teams.
  */
 export const deleteTeam = mutation({
   args: {
@@ -253,20 +267,67 @@ export const deleteTeam = mutation({
       throw new Error('Not authorized');
     }
 
-    // Get all child teams - we need to delete them first
-    const childTeams = await ctx.db
+    // Get the path of the team to delete
+    const teamPath = team.path;
+
+    // Get all descendants using the path
+    const descendants = await ctx.db
       .query('teams')
-      .withIndex('by_parent', (q) => q.eq('parentId', args.id))
+      .withIndex('by_path', (q) => q.gte('path', teamPath))
+      .filter((q) =>
+        q.and(
+          q.lt(q.field('path'), `${teamPath}\uffff`), // Upper bound for prefix search
+          q.neq(q.field('_id'), args.id) // Exclude the team itself
+        )
+      )
       .collect();
 
-    // Recursively delete child teams
-    for (const childTeam of childTeams) {
-      // Delete each child team
-      await ctx.db.delete(childTeam._id);
+    // Delete all descendants first (bottom-up is safest to maintain referential integrity)
+    for (const descendant of descendants) {
+      await ctx.db.delete(descendant._id);
     }
 
-    // Delete the team
+    // Finally, delete the team itself
     await ctx.db.delete(args.id);
     return true;
+  },
+});
+
+/**
+ * Get all descendants of a team using the path field
+ * This uses the path field for efficient querying
+ */
+export const getTeamDescendants = query({
+  args: {
+    id: v.id('teams'),
+    ...SessionIdArg,
+  },
+  handler: async (ctx, args) => {
+    // Get the current user
+    const user = await getAuthUser(ctx, args);
+
+    // Get the team
+    const team = await ctx.db.get(args.id);
+    if (!team) {
+      throw new Error('Team not found');
+    }
+
+    // The path of the team
+    const teamPath = team.path;
+
+    // Get all teams whose path starts with this team's path
+    // but exclude the team itself
+    const descendants = await ctx.db
+      .query('teams')
+      .withIndex('by_path', (q) => q.gte('path', teamPath))
+      .filter((q) =>
+        q.and(
+          q.lt(q.field('path'), `${teamPath}\uffff`), // Upper bound for prefix search
+          q.neq(q.field('_id'), args.id) // Exclude the team itself
+        )
+      )
+      .collect();
+
+    return descendants;
   },
 });
