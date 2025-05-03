@@ -20,6 +20,8 @@ import type * as crypto from "../crypto.js";
 import type * as migration from "../migration.js";
 import type * as presentations from "../presentations.js";
 import type * as serviceDesk from "../serviceDesk.js";
+import type * as teams_mutations from "../teams/mutations.js";
+import type * as teams_queries from "../teams/queries.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -37,6 +39,8 @@ declare const fullApi: ApiFromModules<{
   migration: typeof migration;
   presentations: typeof presentations;
   serviceDesk: typeof serviceDesk;
+  "teams/mutations": typeof teams_mutations;
+  "teams/queries": typeof teams_queries;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

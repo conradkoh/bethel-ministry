@@ -50,4 +50,16 @@ export default defineSchema({
     createdAt: v.number(), // When the code was created
     expiresAt: v.number(), // When the code expires (1 minute after creation)
   }).index('by_code', ['code']),
+
+  // Teams - Hierarchical organization structure
+  teams: defineTable({
+    name: v.string(), // Team name
+    timezone: v.string(), // Team timezone
+    ownerId: v.id('users'), // User who owns the team
+    parentId: v.optional(v.id('teams')), // Parent team ID (null for root teams)
+    createdAt: v.number(), // Timestamp when team was created
+    updatedAt: v.number(), // Timestamp when team was last updated
+  })
+    .index('by_parent', ['parentId']) // For easy fetching of child teams
+    .index('by_owner', ['ownerId']), // For fetching teams owned by a user
 });
