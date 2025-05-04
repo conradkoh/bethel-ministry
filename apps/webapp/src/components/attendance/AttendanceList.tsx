@@ -195,9 +195,9 @@ export function AttendanceList({ teamId }: AttendanceListProps) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
           <Select value={timeFrame} onValueChange={setTimeFrame}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Time period" />
             </SelectTrigger>
             <SelectContent>
@@ -207,7 +207,7 @@ export function AttendanceList({ teamId }: AttendanceListProps) {
               <SelectItem value="year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handleCreateActivity}>
+          <Button className="w-full sm:w-auto" onClick={handleCreateActivity}>
             <PlusCircle className="mr-2 h-4 w-4" />
             New
           </Button>
@@ -215,25 +215,26 @@ export function AttendanceList({ teamId }: AttendanceListProps) {
       </div>
 
       {filteredActivities && filteredActivities.length > 0 ? (
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-1/3">Name</TableHead>
+                <TableHead className="w-1/3">Date</TableHead>
+                <TableHead className="w-1/3 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredActivities.map((activity: AttendanceActivity) => (
                 <TableRow key={activity._id}>
-                  <TableCell className="font-medium">{activity.name}</TableCell>
-                  <TableCell>{formatActivityDate(activity.date)}</TableCell>
+                  <TableCell className="font-medium break-words">{activity.name}</TableCell>
+                  <TableCell className="break-words">{formatActivityDate(activity.date)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="w-full sm:w-auto"
                         onClick={() => handleViewAttendance(activity._id)}
                       >
                         View Attendance
@@ -248,14 +249,14 @@ export function AttendanceList({ teamId }: AttendanceListProps) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-destructive border-destructive hover:bg-destructive/10"
+                            className="text-destructive border-destructive hover:bg-destructive/10 w-full sm:w-auto"
                             onClick={() => setActivityToDelete(activity._id)}
                             disabled={isDeleting}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="w-[90vw] max-w-md">
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Attendance Activity</AlertDialogTitle>
                             <AlertDialogDescription>
@@ -263,8 +264,8 @@ export function AttendanceList({ teamId }: AttendanceListProps) {
                               will permanently remove the activity and all its attendance records.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                            <AlertDialogCancel className="mt-2 sm:mt-0">Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-destructive text-white hover:bg-destructive/90"
                               onClick={(e) => {

@@ -135,16 +135,16 @@ export function ParticipantList({ teamId }: ParticipantListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between space-x-2">
         <Input
           placeholder="Search participants..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm text-sm"
         />
         <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Participant
+          <Plus className="h-4 w-4" />
+          <span className="ml-2 hidden sm:inline">Add Participant</span>
         </Button>
       </div>
 

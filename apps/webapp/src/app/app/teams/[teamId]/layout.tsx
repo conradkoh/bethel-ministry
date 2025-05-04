@@ -40,14 +40,14 @@ export default function TeamLayout({ children }: TeamLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="border-b">
-        <div className="container flex h-14 items-center px-4">
+        <div className="flex h-14 items-center px-4 max-w-full mx-auto overflow-x-auto">
           <nav className="flex items-center space-x-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center text-sm font-medium transition-colors hover:text-primary',
+                  'flex items-center text-sm font-medium transition-colors hover:text-primary whitespace-nowrap',
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
                     ? 'text-foreground'
                     : 'text-muted-foreground'
@@ -60,7 +60,7 @@ export default function TeamLayout({ children }: TeamLayoutProps) {
           </nav>
         </div>
       </div>
-      <main className="flex-1 px-4">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
