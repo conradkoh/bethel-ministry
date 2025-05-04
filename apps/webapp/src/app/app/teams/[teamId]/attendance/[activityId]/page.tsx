@@ -22,7 +22,7 @@ export default function ActivityPage({ params }: ActivityPageProps) {
   const activityIdAsId = activityId as Id<'attendanceActivities'>;
 
   return (
-    <div className="container py-4 md:py-6 space-y-4 md:space-y-6">
+    <div className="container p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <Link href={`/app/teams/${teamId}/attendance`}>
           <Button variant="outline" size="sm" className="w-full sm:w-auto">
