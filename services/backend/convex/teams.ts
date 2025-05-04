@@ -331,3 +331,24 @@ export const getTeamDescendants = query({
     return descendants;
   },
 });
+
+/**
+ * List all teams owned by the current user
+ */
+export const listOwnedTeams = query({
+  args: {
+    ...SessionIdArg,
+  },
+  handler: async (ctx, args) => {
+    // Get the authenticated user
+    const user = await getAuthUser(ctx, args);
+
+    // Query teams owned by the user
+    const teams = await ctx.db
+      .query('teams')
+      .withIndex('by_owner', (q) => q.eq('ownerId', user._id))
+      .collect();
+
+    return teams;
+  },
+});

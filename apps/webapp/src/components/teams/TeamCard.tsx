@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Clock, Edit, Trash2, Users } from 'lucide-react';
+import { CalendarPlus, Clock, Edit, Trash2, Users } from 'lucide-react';
 
 interface TeamCardProps {
   team: Team;
@@ -33,7 +33,7 @@ export function TeamCard({ team, onEdit, onDelete }: TeamCardProps) {
 
   // Navigate to team details page
   const handleClick = () => {
-    router.push(`/teams/${team._id}`);
+    router.push(`/app/teams/${team._id}`);
   };
 
   // Edit team button handler
@@ -95,9 +95,21 @@ export function TeamCard({ team, onEdit, onDelete }: TeamCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="pt-2">
+      <CardFooter className="pt-2 flex flex-col space-y-2 w-full">
         <Button variant="outline" size="sm" className="w-full" onClick={handleClick}>
           View Team
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/app/teams/${team._id}/attendance/create`);
+          }}
+        >
+          <CalendarPlus className="h-4 w-4 mr-2" />
+          Mark Attendance
         </Button>
       </CardFooter>
     </Card>

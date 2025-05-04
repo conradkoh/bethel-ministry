@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ConvexClientProvider } from '@/app/ConvexClientProvider';
 import { Navigation } from '@/components/Navigation';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/modules/auth/AuthProvider';
 
@@ -59,7 +60,9 @@ export default function RootLayout({
           <AuthProvider>
             <div className="flex flex-col min-h-screen">
               <Navigation />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1">
+                <DashboardLayout>{children}</DashboardLayout>
+              </main>
             </div>
           </AuthProvider>
         </ConvexClientProvider>

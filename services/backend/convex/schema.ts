@@ -3,6 +3,14 @@ import { v } from 'convex/values';
 
 // DEPRECATION NOTICE: The fields `expiresAt` and `expiresAtLabel` in the sessions table are deprecated and no longer used for session expiry. They are only kept for migration compatibility and will be removed in a future migration.
 
+// Attendance status enum values (used for type safety in code)
+export const AttendanceStatus = {
+  Present: 'present',
+  Absent: 'absent',
+} as const;
+
+export type AttendanceStatusType = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
+
 export default defineSchema({
   appInfo: defineTable({
     latestVersion: v.string(),
@@ -73,4 +81,30 @@ export default defineSchema({
     createdAt: v.number(), // Timestamp when record was created
     updatedAt: v.number(), // Timestamp when record was last updated
   }).index('by_team', ['teamId']), // For fetching participants in a team
+
+  // Attendance Activities - Represents a specific date/event for tracking attendance
+  attendanceActivities: defineTable({
+    name: v.string(), // Optional name for the activity (e.g., "Sunday Service")
+    date: v.number(), // Date of the activity (timestamp)
+    teamId: v.id('teams'), // Team this activity belongs to
+    createdBy: v.id('users'), // User who created the activity
+    createdAt: v.number(), // Timestamp when record was created
+    updatedAt: v.number(), // Timestamp when record was last updated
+  })
+    .index('by_team', ['teamId']) // For fetching activities for a team
+    .index('by_team_and_date', ['teamId', 'date']), // For fetching activities for a team on a specific date
+
+  // Attendance Records - Individual attendance records for participants
+  attendanceRecords: defineTable({
+    activityId: v.id('attendanceActivities'), // Activity this record belongs to
+    participantId: v.id('participants'), // Participant this record is for
+    status: v.string(), // Attendance status (present, absent) - uses AttendanceStatus enum values
+    notes: v.optional(v.string()), // Optional notes about attendance
+    recordedBy: v.id('users'), // User who recorded this attendance
+    createdAt: v.number(), // Timestamp when record was created
+    updatedAt: v.number(), // Timestamp when record was last updated
+  })
+    .index('by_activity', ['activityId']) // For fetching all records for an activity
+    .index('by_participant', ['participantId']) // For fetching attendance history for a participant
+    .index('by_activity_and_participant', ['activityId', 'participantId']), // For fetching a specific record
 });

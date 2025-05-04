@@ -10,7 +10,6 @@ import { useMyTeams } from '../../../hooks/useTeams';
 import type { Team } from '../../../lib/types/team';
 
 import { DashboardCard } from '@/components/dashboard/DashboardCard';
-import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,12 +17,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Eye, MoreHorizontal, Pencil, Plus, Trash, UserPlus, UsersRound } from 'lucide-react';
+import {
+  Calendar,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash,
+  UserPlus,
+  UsersRound,
+} from 'lucide-react';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-function TeamsPage() {
+export default function TeamsPage() {
   // Get teams data
   const { teams, isLoading, error } = useMyTeams();
   const router = useRouter();
@@ -50,11 +58,13 @@ function TeamsPage() {
     members: 0, // We would need member data to calculate this properly
   };
 
+  const title = 'Teams';
+
   // Render loading state
   if (isLoading) {
     return (
       <div className="container p-6">
-        <h1 className="mb-8 text-3xl font-bold">My Teams</h1>
+        <h1 className="mb-8 text-3xl font-bold">{title}</h1>
         <div className="mt-4 text-center">Loading teams...</div>
       </div>
     );
@@ -64,7 +74,7 @@ function TeamsPage() {
   if (error || !teams) {
     return (
       <div className="container p-6">
-        <h1 className="mb-8 text-3xl font-bold">My Teams</h1>
+        <h1 className="mb-8 text-3xl font-bold">{title}</h1>
         <div className="rounded-md bg-destructive/10 p-4 text-destructive">
           Failed to load teams. Please try again.
         </div>
@@ -75,7 +85,7 @@ function TeamsPage() {
   return (
     <div className="container p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Teams</h1>
+        <h1 className="text-3xl font-bold">{title}</h1>
         <Button onClick={openCreateModal}>
           <UserPlus className="mr-2 h-4 w-4" />
           Create Team
@@ -181,6 +191,14 @@ function TeamsPage() {
                                 <Eye className="mr-2 h-4 w-4" />
                                 View
                               </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(`/app/teams/${team._id}/attendance/create`)
+                                }
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Mark Attendance
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => openEditModal(team)}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
@@ -217,6 +235,14 @@ function TeamsPage() {
                             <DropdownMenuItem onClick={navigateToTeam}>
                               <Eye className="mr-2 h-4 w-4" />
                               View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(`/app/teams/${team._id}/attendance/create`)
+                              }
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              Mark Attendance
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEditModal(team)}>
                               <Pencil className="mr-2 h-4 w-4" />
@@ -273,5 +299,3 @@ function TeamsPage() {
     </div>
   );
 }
-
-export default withDashboardLayout(TeamsPage);

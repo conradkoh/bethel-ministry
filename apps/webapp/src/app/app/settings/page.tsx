@@ -1,6 +1,5 @@
 'use client';
 
-import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { BellRing, Settings, Shield, User } from 'lucide-react';
 
-function SettingsPage() {
+export default function SettingsPage() {
   const authState = useAuthState();
   const isAuthenticated = authState?.state === 'authenticated';
   const userName = isAuthenticated ? authState.user.name : '';
@@ -116,5 +115,3 @@ function SettingsPage() {
     </div>
   );
 }
-
-export default withDashboardLayout(SettingsPage);

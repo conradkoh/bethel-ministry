@@ -1,13 +1,12 @@
 'use client';
 
 import { DashboardCard } from '@/components/dashboard/DashboardCard';
-import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { Calendar, Settings, Star, Users } from 'lucide-react';
 import Link from 'next/link';
 
-function AppPage() {
+export default function AppPage() {
   const authState = useAuthState();
 
   return (
@@ -94,5 +93,3 @@ function AppPage() {
     </div>
   );
 }
-
-export default withDashboardLayout(AppPage);

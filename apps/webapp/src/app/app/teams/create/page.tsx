@@ -1,6 +1,5 @@
 'use client';
 
-import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
 import { CreateTeamModal } from '@/components/teams/modals/CreateTeamModal';
 import { Button } from '@/components/ui/button';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -9,7 +8,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-function CreateTeamPage() {
+export default function CreateTeamPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -66,5 +65,3 @@ function CreateTeamPage() {
     </div>
   );
 }
-
-export default withDashboardLayout(CreateTeamPage);
