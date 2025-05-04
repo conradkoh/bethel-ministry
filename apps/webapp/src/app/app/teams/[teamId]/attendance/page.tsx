@@ -17,7 +17,7 @@ export default function AttendancePage({ params }: AttendancePageProps) {
   const teamIdAsId = teamId as Id<'teams'>;
 
   return (
-    <div className="container px-4 sm:px-6 py-6 space-y-6 max-w-full sm:max-w-screen-xl mx-auto">
+    <div className="container p-6 space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Attendance</h1>
         <p className="text-muted-foreground">Manage and track attendance for your team members.</p>
