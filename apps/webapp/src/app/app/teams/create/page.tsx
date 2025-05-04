@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
 import { CreateTeamModal } from '@/components/teams/modals/CreateTeamModal';
 import { Button } from '@/components/ui/button';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function CreateTeamPage() {
+function CreateTeamPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -38,24 +38,22 @@ export default function CreateTeamPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container p-6">
-        <div className="mb-6">
-          <Link href="/app/teams">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Teams
-            </Button>
-          </Link>
-        </div>
+    <div className="container p-6">
+      <div className="mb-6">
+        <Link href="/app/teams">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Teams
+          </Button>
+        </Link>
+      </div>
 
-        <div className="text-center py-12">
-          <h1 className="text-3xl font-bold mb-4">Create New Team</h1>
-          <p className="text-gray-500 mb-6">
-            {parentId ? 'Creating a child team' : 'Creating a new root team'}
-          </p>
-          <Button onClick={() => setIsModalOpen(true)}>Open Creation Form</Button>
-        </div>
+      <div className="text-center py-12">
+        <h1 className="text-3xl font-bold mb-4">Create New Team</h1>
+        <p className="text-gray-500 mb-6">
+          {parentId ? 'Creating a child team' : 'Creating a new root team'}
+        </p>
+        <Button onClick={() => setIsModalOpen(true)}>Open Creation Form</Button>
       </div>
 
       {/* Create Team Modal */}
@@ -65,6 +63,8 @@ export default function CreateTeamPage() {
         parentId={parentId}
         onSuccess={handleSuccess}
       />
-    </DashboardLayout>
+    </div>
   );
 }
+
+export default withDashboardLayout(CreateTeamPage);
