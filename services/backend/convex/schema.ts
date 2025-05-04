@@ -64,4 +64,13 @@ export default defineSchema({
     .index('by_parent', ['parentId']) // For easy fetching of child teams
     .index('by_owner', ['ownerId']) // For fetching teams owned by a user
     .index('by_path', ['path']), // For efficient hierarchical queries
+
+  // Participants - Team members who can be tracked for attendance
+  participants: defineTable({
+    name: v.string(), // Participant's name
+    teamId: v.id('teams'), // Team this participant belongs to
+    joinDate: v.number(), // Timestamp when participant joined
+    createdAt: v.number(), // Timestamp when record was created
+    updatedAt: v.number(), // Timestamp when record was last updated
+  }).index('by_team', ['teamId']), // For fetching participants in a team
 });

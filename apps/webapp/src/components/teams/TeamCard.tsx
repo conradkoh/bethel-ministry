@@ -33,7 +33,7 @@ export function TeamCard({ team, onEdit, onDelete }: TeamCardProps) {
 
   // Navigate to team details page
   const handleClick = () => {
-    router.push(`/app/teams/${team._id}`);
+    router.push(`/teams/${team._id}`);
   };
 
   // Edit team button handler

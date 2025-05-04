@@ -1,6 +1,7 @@
 'use client';
 
 import { withDashboardLayout } from '@/components/dashboard/withDashboardLayout';
+import { ParticipantList } from '@/components/participants/ParticipantList';
 import { TeamCard } from '@/components/teams/TeamCard';
 import { TeamTree } from '@/components/teams/TeamTree';
 import { DeleteTeamModal } from '@/components/teams/modals/DeleteTeamModal';
@@ -13,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTeamParticipants } from '@/hooks/useParticipants';
 import { useTeam, useTeamChildren } from '@/hooks/useTeams';
 import type { Team } from '@/lib/types/team';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
@@ -28,6 +31,7 @@ function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [childTeamToEdit, setChildTeamToEdit] = useState<Id<'teams'> | null>(null);
   const [childTeamToDelete, setChildTeamToDelete] = useState<Id<'teams'> | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('participants');
 
   // Get the team ID from params
   useEffect(() => {
@@ -38,9 +42,32 @@ function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
     getTeamId();
   }, [params]);
 
+  // Set active tab based on URL hash
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'participants' || hash === 'hierarchy') {
+        setActiveTab(hash);
+      } else if (!hash) {
+        // Update URL with default tab
+        window.location.hash = activeTab;
+      }
+    }
+  }, [activeTab]);
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (typeof window !== 'undefined') {
+      window.location.hash = value;
+    }
+  };
+
   // Get team data
   const { team, isLoading, error } = useTeam(teamId);
   const { children: childTeams } = useTeamChildren(teamId);
+  const participants = useTeamParticipants(teamId || ('' as Id<'teams'>));
+  const participantsCount = participants.length;
 
   // Modal handlers
   const openEditModal = () => setIsEditModalOpen(true);
@@ -169,7 +196,7 @@ function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
             <div className="space-y-4">
               <div>
                 <div className="text-sm font-medium text-gray-500">Members</div>
-                <p className="mt-1 text-2xl font-bold">0</p>
+                <p className="mt-1 text-2xl font-bold">{participantsCount}</p>
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-500">Child Teams</div>
@@ -180,47 +207,63 @@ function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       </div>
 
-      {/* Child Teams */}
+      {/* Tabs for Participants and Team Structure */}
       <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Child Teams</h2>
-          <Link href={`/app/teams/create?parentId=${team._id}`}>
-            <Button>
-              <Users className="mr-2 h-4 w-4" />
-              Add Child Team
-            </Button>
-          </Link>
-        </div>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList>
+            <TabsTrigger value="participants">Participants</TabsTrigger>
+            <TabsTrigger value="hierarchy">Team Structure</TabsTrigger>
+          </TabsList>
 
-        {childTeams && childTeams.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {childTeams.map((childTeam: Team) => (
-              <TeamCard
-                key={childTeam._id}
-                team={childTeam}
-                onEdit={() => openChildEditModal(childTeam._id)}
-                onDelete={() => openChildDeleteModal(childTeam._id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500">No child teams found.</p>
-            <Link href={`/app/teams/create?parentId=${team._id}`}>
-              <Button variant="outline" className="mt-4">
-                Create Child Team
-              </Button>
-            </Link>
-          </div>
-        )}
-      </div>
+          <TabsContent value="participants" className="mt-4">
+            <ParticipantList teamId={team._id} />
+          </TabsContent>
 
-      {/* Team Hierarchy */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Team Hierarchy</h2>
-        <div className="bg-white rounded-lg shadow p-6">
-          <TeamTree teamId={team._id} />
-        </div>
+          <TabsContent value="hierarchy" className="mt-4">
+            {/* Child Teams */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Child Teams</h2>
+                <Link href={`/app/teams/create?parentId=${team._id}`}>
+                  <Button>
+                    <Users className="mr-2 h-4 w-4" />
+                    Add Child Team
+                  </Button>
+                </Link>
+              </div>
+
+              {childTeams && childTeams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {childTeams.map((childTeam: Team) => (
+                    <TeamCard
+                      key={childTeam._id}
+                      team={childTeam}
+                      onEdit={() => openChildEditModal(childTeam._id)}
+                      onDelete={() => openChildDeleteModal(childTeam._id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-6 text-center">
+                  <p className="text-gray-500">No child teams found.</p>
+                  <Link href={`/app/teams/create?parentId=${team._id}`}>
+                    <Button variant="outline" className="mt-4">
+                      Create Child Team
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Team Hierarchy Tree */}
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Team Hierarchy</h2>
+                <div className="bg-white rounded-lg shadow p-6">
+                  <TeamTree teamId={team._id} />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Modals */}
