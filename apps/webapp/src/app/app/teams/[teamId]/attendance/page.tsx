@@ -7,9 +7,9 @@ interface AttendancePageProps {
   params: Promise<{ teamId: string }>;
 }
 
-export default function AttendancePage({ params }: AttendancePageProps) {
+export default async function AttendancePage({ params }: AttendancePageProps) {
   // Convert params to a React hook that suspends
-  const resolvedParams = use(params);
+  const resolvedParams = await params;
   const teamId = resolvedParams.teamId;
 
   // Validate teamId format - this will ensure we handle invalid IDs gracefully

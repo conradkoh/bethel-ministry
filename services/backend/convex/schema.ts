@@ -11,6 +11,18 @@ export const AttendanceStatus = {
 
 export type AttendanceStatusType = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
 
+// Team permission enum values (used for share links and access control)
+export const TeamPermission = {
+  ViewTeam: 'view-team',
+  ManageParticipants: 'manage-participants',
+  ViewParticipants: 'view-participants',
+  ManageAttendance: 'manage-attendance',
+  ViewAttendance: 'view-attendance',
+  ViewReports: 'view-reports',
+} as const;
+
+export type TeamPermissionType = (typeof TeamPermission)[keyof typeof TeamPermission];
+
 export default defineSchema({
   appInfo: defineTable({
     latestVersion: v.string(),
@@ -107,4 +119,18 @@ export default defineSchema({
     .index('by_activity', ['activityId']) // For fetching all records for an activity
     .index('by_participant', ['participantId']) // For fetching attendance history for a participant
     .index('by_activity_and_participant', ['activityId', 'participantId']), // For fetching a specific record
+
+  // Share Links - Links that can be shared with others to grant specific permissions
+  shareLinks: defineTable({
+    name: v.string(), // Display name for the share link
+    teamId: v.id('teams'), // Team this share link is for
+    createdBy: v.id('users'), // User who created the share link
+    permissions: v.array(v.string()), // Array of permission strings (uses TeamPermission enum values)
+    token: v.string(), // Unique token for accessing the team via this link
+    expiresAt: v.optional(v.number()), // Optional expiration timestamp
+    createdAt: v.number(), // Timestamp when the share link was created
+    updatedAt: v.number(), // Timestamp when the share link was last updated
+  })
+    .index('by_team', ['teamId']) // For fetching all share links for a team
+    .index('by_token', ['token']), // For validating a share link token
 });

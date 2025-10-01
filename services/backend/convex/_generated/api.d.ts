@@ -23,6 +23,7 @@ import type * as participants_mutations from "../participants/mutations.js";
 import type * as participants_queries from "../participants/queries.js";
 import type * as presentations from "../presentations.js";
 import type * as serviceDesk from "../serviceDesk.js";
+import type * as shareLinks from "../shareLinks.js";
 import type * as teams from "../teams.js";
 
 /**
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   "participants/queries": typeof participants_queries;
   presentations: typeof presentations;
   serviceDesk: typeof serviceDesk;
+  shareLinks: typeof shareLinks;
   teams: typeof teams;
 }>;
 export declare const api: FilterApi<
