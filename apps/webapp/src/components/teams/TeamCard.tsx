@@ -1,6 +1,5 @@
 'use client';
 
-import { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Team } from '../../lib/types/team';
@@ -14,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { CalendarPlus, Clock, Edit, Trash2, Users } from 'lucide-react';
+import { CalendarPlus, Clock, Edit, Trash2 } from 'lucide-react';
 
 interface TeamCardProps {
   team: Team;

@@ -17,9 +17,12 @@ import type * as cleanupTasks from "../cleanupTasks.js";
 import type * as crypto from "../crypto.js";
 import type * as discussions from "../discussions.js";
 import type * as migration from "../migration.js";
+import type * as participants_mutations from "../participants/mutations.js";
+import type * as participants_queries from "../participants/queries.js";
 import type * as presentations from "../presentations.js";
 import type * as serviceDesk from "../serviceDesk.js";
 import type * as system_auth_google from "../system/auth/google.js";
+import type * as teams from "../teams.js";
 
 import type {
   ApiFromModules,
@@ -37,9 +40,12 @@ declare const fullApi: ApiFromModules<{
   crypto: typeof crypto;
   discussions: typeof discussions;
   migration: typeof migration;
+  "participants/mutations": typeof participants_mutations;
+  "participants/queries": typeof participants_queries;
   presentations: typeof presentations;
   serviceDesk: typeof serviceDesk;
   "system/auth/google": typeof system_auth_google;
+  teams: typeof teams;
 }>;
 
 /**

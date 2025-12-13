@@ -2,7 +2,6 @@
 
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { useState } from 'react';
-import { TeamCard } from '../../../components/teams/TeamCard';
 import { CreateTeamModal } from '../../../components/teams/modals/CreateTeamModal';
 import { DeleteTeamModal } from '../../../components/teams/modals/DeleteTeamModal';
 import { EditTeamModal } from '../../../components/teams/modals/EditTeamModal';
@@ -26,9 +25,8 @@ import {
   Trash,
   UserPlus,
   UsersRound,
+  Users,
 } from 'lucide-react';
-import { Users } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function TeamsPage() {
@@ -149,7 +147,7 @@ export default function TeamsPage() {
 
               {/* Teams list */}
               <div className="divide-y">
-                {teams.map((team) => {
+                {teams.map((team: Team) => {
                   // Create navigation handler that works with the dropdown menu
                   const navigateToTeam = () => {
                     router.push(`/app/teams/${team._id}`);

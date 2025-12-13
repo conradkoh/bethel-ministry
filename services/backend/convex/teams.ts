@@ -22,7 +22,7 @@ export const getRootTeams = query({
   },
   handler: async (ctx, args) => {
     // Get the current user
-    const user = await getAuthUser(ctx, args);
+    await getAuthUser(ctx, args);
 
     // Get all root teams (teams with no parent)
     const rootTeams = await ctx.db
@@ -45,7 +45,7 @@ export const getTeamById = query({
   },
   handler: async (ctx, args) => {
     // Get the current user
-    const user = await getAuthUser(ctx, args);
+    await getAuthUser(ctx, args);
 
     // Get the team
     const team = await ctx.db.get(args.id);
@@ -63,7 +63,7 @@ export const getTeamChildren = query({
   },
   handler: async (ctx, args) => {
     // Get the current user
-    const user = await getAuthUser(ctx, args);
+    await getAuthUser(ctx, args);
 
     // Get all children of the team
     const childTeams = await ctx.db
@@ -85,7 +85,7 @@ export const getTeamHierarchy = query({
   },
   handler: async (ctx, args) => {
     // Get the current user
-    const user = await getAuthUser(ctx, args);
+    await getAuthUser(ctx, args);
 
     // Get the team
     const team = await ctx.db.get(args.id);
@@ -304,7 +304,7 @@ export const getTeamDescendants = query({
   },
   handler: async (ctx, args) => {
     // Get the current user
-    const user = await getAuthUser(ctx, args);
+    await getAuthUser(ctx, args);
 
     // Get the team
     const team = await ctx.db.get(args.id);

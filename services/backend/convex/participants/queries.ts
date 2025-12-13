@@ -1,7 +1,7 @@
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { v } from 'convex/values';
 import { getAuthUser } from '../../modules/auth/getAuthUser';
-import type { Doc, Id } from '../_generated/dataModel';
+import type { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
 
 // Define the Participant interface

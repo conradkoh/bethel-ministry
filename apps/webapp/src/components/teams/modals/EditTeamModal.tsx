@@ -1,7 +1,6 @@
 'use client';
 
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
-import { useEffect } from 'react';
 import { useTeam } from '../../../hooks/useTeams';
 import type { TeamFormData } from '../../../lib/types/team';
 import { TeamForm } from '../TeamForm';

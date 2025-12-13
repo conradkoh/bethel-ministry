@@ -4,7 +4,7 @@ import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import type { TeamHierarchy } from '@workspace/backend/convex/teams';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useTeam, useTeamChildren, useTeamDescendants } from '../../hooks/useTeams';
+import { useTeam, useTeamDescendants } from '../../hooks/useTeams';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';

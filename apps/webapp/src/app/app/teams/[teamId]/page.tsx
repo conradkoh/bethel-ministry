@@ -15,7 +15,7 @@ import { useTeamParticipants } from '@/hooks/useParticipants';
 import { useTeam, useTeamChildren } from '@/hooks/useTeams';
 import type { Team } from '@/lib/types/team';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
-import { ArrowLeft, Edit, MoreHorizontal, Pencil, Trash, Users } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Pencil, Trash, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

@@ -1,5 +1,4 @@
 import { AttendanceList } from '@/components/attendance/AttendanceList';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
 import { use } from 'react';
 

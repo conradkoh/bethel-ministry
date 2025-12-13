@@ -1,7 +1,6 @@
 import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { v } from 'convex/values';
 import { getAuthUser } from '../../modules/auth/getAuthUser';
-import type { Doc, Id } from '../_generated/dataModel';
 import { mutation } from '../_generated/server';
 
 /**

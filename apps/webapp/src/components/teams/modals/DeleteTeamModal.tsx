@@ -6,7 +6,6 @@ import { useDeleteTeam, useTeam, useTeamDescendants } from '../../../hooks/useTe
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,

@@ -1,7 +1,6 @@
 'use client';
 
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
-import { useEffect } from 'react';
 import { useParticipant } from '../../../hooks/useParticipants';
 import type { ParticipantFormData } from '../../../lib/types/participant';
 import { ParticipantForm } from '../ParticipantForm';

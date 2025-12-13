@@ -1,10 +1,8 @@
 import { AttendanceMarkingTable } from '@/components/attendance/AttendanceMarkingTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { api } from '@workspace/backend/convex/_generated/api';
 import type { Id } from '@workspace/backend/convex/_generated/dataModel';
-import { useSessionQuery } from 'convex-helpers/react/sessions';
-import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 

@@ -100,18 +100,27 @@ export default defineSchema({
    * Records attendance status, reasons, and participant information.
    */
   attendanceRecords: defineTable({
-    attendanceKey: v.string(), // The attendance session key (hardcoded)
-    timestamp: v.number(), // When the attendance was recorded
+    // New team-based attendance fields
+    activityId: v.optional(v.id('attendanceActivities')), // Activity this record belongs to
+    participantId: v.optional(v.id('participants')), // Participant this record is for
+    recordedBy: v.optional(v.id('users')), // User who recorded this attendance
+    status: v.optional(v.union(v.literal('present'), v.literal('absent'), v.literal('attending'), v.literal('not_attending'))), // Attendance status
+    // Legacy fields for backwards compatibility
+    attendanceKey: v.optional(v.string()), // The attendance session key (hardcoded)
+    timestamp: v.optional(v.number()), // When the attendance was recorded
     userId: v.optional(v.id('users')), // Optional user ID (for authenticated users)
     name: v.optional(v.string()), // Name (required for anonymous users)
-    status: v.optional(v.union(v.literal('attending'), v.literal('not_attending'))), // Attendance status
     reason: v.optional(v.string()), // Optional reason for not attending
     remarks: v.optional(v.string()), // Optional remarks for attending
     isManuallyJoined: v.optional(v.boolean()), // Whether this person manually joined the list (vs being in expected list)
+    createdAt: v.optional(v.number()), // When the record was created
+    updatedAt: v.optional(v.number()), // When the record was last updated
   })
     .index('by_attendance', ['attendanceKey'])
     .index('by_name_attendance', ['attendanceKey', 'name'])
-    .index('by_user_attendance', ['attendanceKey', 'userId']),
+    .index('by_user_attendance', ['attendanceKey', 'userId'])
+    .index('by_activity', ['activityId'])
+    .index('by_participant', ['participantId']),
 
   /**
    * User accounts supporting authenticated, anonymous, and Google OAuth users.
@@ -230,4 +239,48 @@ export default defineSchema({
     expiresAt: v.number(), // When this connect request expires (15 minutes from creation)
     redirectUri: v.string(), // The OAuth redirect URI used for this connect request
   }),
+
+  /**
+   * Teams for organizing participants and attendance activities.
+   * Supports hierarchical team structures with parent-child relationships.
+   */
+  teams: defineTable({
+    name: v.string(), // Team name
+    timezone: v.string(), // Team timezone (e.g., 'America/New_York')
+    ownerId: v.id('users'), // User who owns this team
+    parentId: v.optional(v.id('teams')), // Optional parent team for hierarchy
+    path: v.string(), // Hierarchical path for efficient queries (e.g., '/parent_id/team_id/')
+    createdAt: v.number(), // When the team was created
+    updatedAt: v.number(), // When the team was last updated
+  })
+    .index('by_owner', ['ownerId'])
+    .index('by_parent', ['parentId'])
+    .index('by_path', ['path']),
+
+  /**
+   * Participants within teams.
+   * Tracks individual members of teams with join dates.
+   */
+  participants: defineTable({
+    name: v.string(), // Participant name
+    teamId: v.id('teams'), // Team this participant belongs to
+    joinDate: v.number(), // When the participant joined
+    createdAt: v.number(), // When the record was created
+    updatedAt: v.number(), // When the record was last updated
+  }).index('by_team', ['teamId']),
+
+  /**
+   * Attendance activities for tracking team attendance.
+   * Links attendance sessions to specific teams and dates.
+   */
+  attendanceActivities: defineTable({
+    name: v.string(), // Activity name
+    teamId: v.id('teams'), // Team this activity belongs to
+    date: v.number(), // Activity date timestamp
+    createdBy: v.optional(v.id('users')), // User who created this activity
+    createdAt: v.number(), // When the activity was created
+    updatedAt: v.number(), // When the activity was last updated
+  })
+    .index('by_team', ['teamId'])
+    .index('by_date', ['date']),
 });

@@ -40,7 +40,9 @@
     }
   },
   "files": {
-    "ignore": [
+    "ignoreUnknown": false,
+    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"],
+    "experimentalScannerIgnores": [
       "**/node_modules",
       "**/.next",
       "**/.nx",
