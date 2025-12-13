@@ -6,6 +6,22 @@ import type * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Checkbox component built on top of Radix UI primitives.
+ * Provides a styled checkbox input with check icon indicator and accessibility features.
+ * Supports all standard checkbox states: unchecked, checked, and indeterminate.
+ *
+ * Features:
+ * - Accessible keyboard navigation
+ * - Focus ring styling
+ * - Dark mode support
+ * - Disabled state handling
+ * - Error state styling
+ * - Customizable via className prop
+ *
+ * @param className - Additional CSS classes to apply to the checkbox
+ * @param props - All other props are forwarded to the underlying Radix checkbox primitive
+ */
 function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
     <CheckboxPrimitive.Root

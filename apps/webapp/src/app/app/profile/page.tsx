@@ -1,5 +1,13 @@
 'use client';
 
+import { api } from '@workspace/backend/convex/_generated/api';
+import { useAction } from 'convex/react';
+import { useSessionId } from 'convex-helpers/react/sessions';
+import { CopyIcon, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,107 +20,178 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthState } from '@/modules/auth/AuthProvider';
 import { LoginCodeGenerator } from '@/modules/auth/LoginCodeGenerator';
 import { NameEditForm } from '@/modules/profile/NameEditForm';
-import { api } from '@workspace/backend/convex/_generated/api';
-import { useSessionId } from 'convex-helpers/react/sessions';
-import { useAction } from 'convex/react';
-import { CopyIcon, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { ThemeSettings } from '@/modules/theme/ThemeSettings';
 
-// Recovery Code Component
-function RecoveryCodeSection() {
+/**
+ * Component that handles search params with proper error handling
+ */
+function SearchParamsHandler() {
+  const searchParams = useSearchParams();
+
+  // Handle error messages from OAuth redirects
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      toast.error(decodeURIComponent(error));
+      // Clear the error from URL without causing a page reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
+
+  return null; // This component only handles side effects
+}
+
+/**
+ * Displays the user profile page with account management, theme settings, and recovery options.
+ */
+function ProfilePageContent() {
+  const authState = useAuthState();
+
+  const isAuthenticated = useMemo(() => {
+    return authState?.state === 'authenticated' && !!authState?.user;
+  }, [authState]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-4">
+        <h1 className="text-xl font-semibold mb-2">Profile</h1>
+        <p className="text-sm text-muted-foreground">
+          You need to be logged in to view your profile.
+        </p>
+        <Link href="/login" className="mt-4">
+          <Button>Log In</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container max-w-2xl mx-auto p-4 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Profile</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Manage your account information and preferences.
+        </p>
+
+        <div className="border-t pt-6">
+          <h2 className="text-xl font-semibold mb-2">Account Information</h2>
+          <div className="space-y-4">
+            <NameEditForm />
+            <LoginCodeGenerator />
+          </div>
+        </div>
+
+        <ThemeSettings />
+
+        <_RecoveryCodeSection />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Loading state for the profile page
+ */
+function ProfilePageLoading() {
+  return (
+    <div className="container max-w-2xl mx-auto p-4">
+      <div className="animate-pulse space-y-6">
+        <div>
+          <div className="h-8 bg-muted rounded w-32 mb-2" />
+          <div className="h-4 bg-muted rounded w-64 mb-6" />
+        </div>
+        <div className="border-t pt-6">
+          <div className="h-6 bg-muted rounded w-48 mb-4" />
+          <div className="space-y-4">
+            <div className="h-16 bg-muted rounded" />
+            <div className="h-16 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Main profile page component with Suspense boundary
+ */
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<ProfilePageLoading />}>
+      <SearchParamsHandler />
+      <ProfilePageContent />
+    </Suspense>
+  );
+}
+
+/**
+ * Displays recovery code management section for account backup and restoration.
+ */
+function _RecoveryCodeSection() {
   const getOrCreateCode = useAction(api.auth.getOrCreateRecoveryCode);
   const regenerateCode = useAction(api.auth.regenerateRecoveryCode);
   const [sessionId] = useSessionId();
+
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleRevealCode = async () => {
-    if (!sessionId) {
-      setError('Session not found. Cannot fetch recovery code.');
-      toast.error('Session not found.');
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await getOrCreateCode({ sessionId });
-      if (result.success && result.recoveryCode) {
-        setRecoveryCode(result.recoveryCode);
-      } else {
-        setError(result.reason || 'Failed to retrieve recovery code.');
-        toast.error(result.reason || 'Failed to retrieve recovery code.');
-      }
-    } catch (err) {
-      console.error('Error revealing recovery code:', err);
-      setError('An unexpected error occurred.');
-      toast.error('An unexpected error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleRevealCode = useCallback(async () => {
+    await _handleRevealCode({
+      sessionId,
+      setError,
+      setIsLoading,
+      getOrCreateCode,
+      setRecoveryCode,
+    });
+  }, [sessionId, getOrCreateCode]);
 
-  const handleRegenerateCode = async () => {
-    if (!sessionId) {
-      setError('Session not found. Cannot regenerate recovery code.');
-      toast.error('Session not found.');
-      return;
-    }
-    setIsRegenerating(true);
-    setError(null);
+  const handleRegenerateCode = useCallback(async () => {
+    await _handleRegenerateCode({
+      sessionId,
+      setIsRegenerating,
+      setError,
+      regenerateCode,
+      setRecoveryCode,
+      setDialogOpen,
+    });
+  }, [sessionId, regenerateCode]);
 
-    try {
-      const result = await regenerateCode({ sessionId });
-      if (result.success && result.recoveryCode) {
-        setRecoveryCode(result.recoveryCode);
-        toast.success('Recovery code regenerated successfully!');
-      } else {
-        setError(result.reason || 'Failed to regenerate recovery code.');
-        toast.error(result.reason || 'Failed to regenerate recovery code.');
-      }
-    } catch (err) {
-      console.error('Error regenerating recovery code:', err);
-      setError('An unexpected error occurred.');
-      toast.error('An unexpected error occurred.');
-    } finally {
-      setIsRegenerating(false);
-      setDialogOpen(false);
-    }
-  };
+  const handleCopyCode = useCallback(() => {
+    _handleCopyCode(recoveryCode);
+  }, [recoveryCode]);
 
-  const handleCopyCode = () => {
-    if (recoveryCode) {
-      navigator.clipboard
-        .writeText(recoveryCode)
-        .then(() => {
-          toast.success('Recovery code copied to clipboard!');
-        })
-        .catch((err) => {
-          console.error('Failed to copy text: ', err);
-          toast.error('Failed to copy code.');
-        });
-    }
-  };
+  const handleTextareaClick = useCallback((e: React.MouseEvent<HTMLTextAreaElement>) => {
+    // Select all text when clicked for easy copying
+    e.currentTarget.select();
+  }, []);
+
+  const buttonText = useMemo(() => {
+    return isLoading ? 'Revealing...' : 'Reveal Recovery Code';
+  }, [isLoading]);
+
+  const regenerateButtonText = useMemo(() => {
+    return isRegenerating ? 'Regenerating...' : 'Regenerate Code';
+  }, [isRegenerating]);
 
   return (
     <div className="border-t pt-6">
       <h2 className="text-xl font-semibold mb-2">Account Recovery</h2>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         Keep this recovery code in a safe place. It's the only way to regain access to your
         anonymous account if you lose access.
       </p>
       {!recoveryCode ? (
         <Button onClick={handleRevealCode} disabled={isLoading}>
-          {isLoading ? 'Revealing...' : 'Reveal Recovery Code'}
+          {buttonText}
         </Button>
       ) : (
         <div className="space-y-4">
@@ -121,10 +200,7 @@ function RecoveryCodeSection() {
               value={recoveryCode}
               readOnly
               className="font-mono text-sm whitespace-normal break-all h-auto min-h-[100px] resize-none"
-              onClick={(e: React.MouseEvent<HTMLTextAreaElement>) => {
-                // Select all text when clicked for easy copying
-                e.currentTarget.select();
-              }}
+              onClick={handleTextareaClick}
             />
             <Button
               variant="outline"
@@ -147,7 +223,7 @@ function RecoveryCodeSection() {
                 disabled={isRegenerating}
               >
                 <RefreshCw className="h-4 w-4" />
-                {isRegenerating ? 'Regenerating...' : 'Regenerate Code'}
+                {regenerateButtonText}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -155,7 +231,7 @@ function RecoveryCodeSection() {
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   Regenerating your recovery code will{' '}
-                  <span className="font-bold text-red-500">invalidate your old code</span>. This
+                  <span className="font-bold text-destructive">invalidate your old code</span>. This
                   action cannot be undone. Your old recovery code will no longer work!
                   <br />
                   <br />
@@ -166,7 +242,7 @@ function RecoveryCodeSection() {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleRegenerateCode}
-                  className="bg-red-500 hover:bg-red-600"
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
                   Regenerate
                 </AlertDialogAction>
@@ -175,79 +251,108 @@ function RecoveryCodeSection() {
           </AlertDialog>
         </div>
       )}
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      {error && <p className="text-destructive text-sm mt-2">{error}</p>}
     </div>
   );
 }
 
-export default function ProfilePage() {
-  const authState = useAuthState();
+interface _RevealCodeParams {
+  sessionId: ReturnType<typeof useSessionId>[0];
+  setError: (error: string | null) => void;
+  setIsLoading: (loading: boolean) => void;
+  getOrCreateCode: ReturnType<typeof useAction<typeof api.auth.getOrCreateRecoveryCode>>;
+  setRecoveryCode: (code: string | null) => void;
+}
 
-  // Check if user is authenticated
-  const isAuthenticated = useMemo(() => authState?.state === 'authenticated', [authState]);
+/**
+ * Handles revealing the recovery code with proper error handling and loading states.
+ */
+async function _handleRevealCode(params: _RevealCodeParams): Promise<void> {
+  const { sessionId, setError, setIsLoading, getOrCreateCode, setRecoveryCode } = params;
 
-  // Check if user is anonymous
-  const isAnonymousUser = useMemo(
-    () =>
-      isAuthenticated && authState && 'user' in authState && authState.user.type === 'anonymous',
-    [authState, isAuthenticated]
-  );
+  if (!sessionId) {
+    setError('Session not found. Cannot fetch recovery code.');
+    toast.error('Session not found.');
+    return;
+  }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <Card className="p-6 mb-6">
-          <h1 className="text-2xl font-bold mb-6">Your Profile</h1>
+  setIsLoading(true);
+  setError(null);
 
-          {isAuthenticated && (
-            <div className="space-y-8">
-              <div className="p-4 bg-gray-50 rounded-md">
-                <h2 className="text-xl font-semibold mb-2">Account Information</h2>
-                <div className="grid grid-cols-1 gap-2">
-                  <div>
-                    <span className="font-medium">Account Type:</span>{' '}
-                    {isAnonymousUser ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Anonymous
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Full Account
-                      </span>
-                    )}
-                  </div>
-                  {isAnonymousUser && (
-                    <div className="mt-2 text-sm text-gray-500">
-                      You are using an anonymous account. Your data will be available as long as you
-                      use the same device and don't clear your browser data.
-                    </div>
-                  )}
-                </div>
-              </div>
+  try {
+    const result = await getOrCreateCode({ sessionId });
+    if (result.success && result.recoveryCode) {
+      setRecoveryCode(result.recoveryCode);
+    } else {
+      setError(result.reason || 'Failed to retrieve recovery code.');
+      toast.error(result.reason || 'Failed to retrieve recovery code.');
+    }
+  } catch (error) {
+    console.error('Error revealing recovery code:', error);
+    setError('An unexpected error occurred.');
+    toast.error('An unexpected error occurred.');
+  } finally {
+    setIsLoading(false);
+  }
+}
 
-              <div className="border-t pt-6">
-                <NameEditForm />
-              </div>
+interface _RegenerateCodeParams {
+  sessionId: ReturnType<typeof useSessionId>[0];
+  setIsRegenerating: (regenerating: boolean) => void;
+  setError: (error: string | null) => void;
+  regenerateCode: ReturnType<typeof useAction<typeof api.auth.regenerateRecoveryCode>>;
+  setRecoveryCode: (code: string | null) => void;
+  setDialogOpen: (open: boolean) => void;
+}
 
-              {isAnonymousUser && (
-                <div className="border-t pt-6">
-                  <LoginCodeGenerator />
-                </div>
-              )}
+/**
+ * Handles regenerating the recovery code with confirmation and error handling.
+ */
+async function _handleRegenerateCode(params: _RegenerateCodeParams): Promise<void> {
+  const { sessionId, setIsRegenerating, setError, regenerateCode, setRecoveryCode, setDialogOpen } =
+    params;
 
-              {isAnonymousUser && <RecoveryCodeSection />}
+  if (!sessionId) {
+    setError('Session not found. Cannot regenerate recovery code.');
+    toast.error('Session not found.');
+    return;
+  }
 
-              <div className="border-t pt-6 flex justify-end">
-                <Link href="/app">
-                  <Button variant="outline" aria-label="Return to app">
-                    Back to App
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-    </div>
-  );
+  setIsRegenerating(true);
+  setError(null);
+
+  try {
+    const result = await regenerateCode({ sessionId });
+    if (result.success && result.recoveryCode) {
+      setRecoveryCode(result.recoveryCode);
+      toast.success('Recovery code regenerated successfully!');
+    } else {
+      setError(result.reason || 'Failed to regenerate recovery code.');
+      toast.error(result.reason || 'Failed to regenerate recovery code.');
+    }
+  } catch (error) {
+    console.error('Error regenerating recovery code:', error);
+    setError('An unexpected error occurred.');
+    toast.error('An unexpected error occurred.');
+  } finally {
+    setIsRegenerating(false);
+    setDialogOpen(false);
+  }
+}
+
+/**
+ * Handles copying the recovery code to clipboard with user feedback.
+ */
+function _handleCopyCode(recoveryCode: string | null): void {
+  if (recoveryCode) {
+    navigator.clipboard
+      .writeText(recoveryCode)
+      .then(() => {
+        toast.success('Recovery code copied to clipboard!');
+      })
+      .catch((error) => {
+        console.error('Failed to copy text: ', error);
+        toast.error('Failed to copy code.');
+      });
+  }
 }

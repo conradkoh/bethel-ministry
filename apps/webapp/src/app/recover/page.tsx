@@ -1,5 +1,13 @@
 'use client';
 
+import { api } from '@workspace/backend/convex/_generated/api';
+import { useAction } from 'convex/react';
+import { useSessionId } from 'convex-helpers/react/sessions';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,69 +20,83 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AuthProvider } from '@/modules/auth/AuthProvider';
-import { api } from '@workspace/backend/convex/_generated/api';
-import { useSessionId } from 'convex-helpers/react/sessions';
-import { useAction } from 'convex/react';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
-function RecoverAccountForm() {
+/**
+ * Account recovery page that allows users to recover their account using a recovery code.
+ * Wraps the recovery form with authentication provider for session management.
+ */
+export default function RecoverAccountPage() {
+  return (
+    <AuthProvider>
+      <_RecoverAccountForm />
+    </AuthProvider>
+  );
+}
+
+/**
+ * Main recovery form component that handles recovery code verification and account restoration.
+ */
+function _RecoverAccountForm() {
   const verifyCode = useAction(api.auth.verifyRecoveryCode);
-  const [sessionId, refreshSessionId] = useSessionId(); // Get session ID and refresh function
+  const [sessionId, refreshSessionId] = useSessionId();
   const [recoveryCode, setRecoveryCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!sessionId) {
-      setError('Session ID is missing. Cannot recover account.');
-      toast.error('Session ID is missing.');
-      return;
-    }
-    if (!recoveryCode.trim()) {
-      setError('Please enter your recovery code.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await verifyCode({ recoveryCode: recoveryCode.trim(), sessionId });
-
-      if (result.success && result.user) {
-        toast.success('Account recovered successfully!');
-        // Refresh the session ID to reflect the newly associated user
-        await refreshSessionId();
-        // Redirect to the app page after successful recovery
-        router.push('/app');
-      } else {
-        const reason = result.reason || 'invalid_code';
-        let errorMessage = 'Invalid recovery code.';
-        if (reason === 'user_not_found') {
-          errorMessage = 'User associated with this code not found.';
-        } else if (reason !== 'invalid_code') {
-          errorMessage = 'Failed to verify recovery code.';
-        }
-        setError(errorMessage);
-        toast.error(errorMessage);
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!sessionId) {
+        setError('Session ID is missing. Cannot recover account.');
+        toast.error('Session ID is missing.');
+        return;
       }
-    } catch (err) {
-      console.error('Error verifying recovery code:', err);
-      setError('An unexpected error occurred during recovery.');
-      toast.error('An unexpected error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (!recoveryCode.trim()) {
+        setError('Please enter your recovery code.');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await verifyCode({ recoveryCode: recoveryCode.trim(), sessionId });
+
+        if (result.success && result.user) {
+          toast.success('Account recovered successfully!');
+          // Refresh the session ID to reflect the newly associated user
+          await refreshSessionId();
+          // Redirect to the app page after successful recovery
+          router.push('/app');
+        } else {
+          const reason = result.reason || 'invalid_code';
+          let errorMessage = 'Invalid recovery code.';
+          if (reason === 'user_not_found') {
+            errorMessage = 'User associated with this code not found.';
+          } else if (reason !== 'invalid_code') {
+            errorMessage = 'Failed to verify recovery code.';
+          }
+          setError(errorMessage);
+          toast.error(errorMessage);
+        }
+      } catch (error) {
+        console.error('Error verifying recovery code:', error);
+        setError('An unexpected error occurred during recovery.');
+        toast.error('An unexpected error occurred.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sessionId, recoveryCode, verifyCode, refreshSessionId, router]
+  );
+
+  const handleRecoveryCodeChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setRecoveryCode(e.target.value);
+  }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <CardHeader className="pb-6">
@@ -92,7 +114,7 @@ function RecoverAccountForm() {
                 <Textarea
                   id="recovery-code"
                   value={recoveryCode}
-                  onChange={(e) => setRecoveryCode(e.target.value)}
+                  onChange={handleRecoveryCodeChange}
                   placeholder="Paste your recovery code here"
                   required
                   disabled={isLoading}
@@ -114,7 +136,7 @@ function RecoverAccountForm() {
               </Button>
               <Link
                 href="/login"
-                className="flex items-center justify-center text-sm text-gray-500 hover:text-gray-700 transition-colors mt-4 pt-2"
+                className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors mt-4 pt-2"
               >
                 <ArrowLeft className="mr-1 h-3 w-3" />
                 Back to Login
@@ -124,14 +146,5 @@ function RecoverAccountForm() {
         </Card>
       </div>
     </div>
-  );
-}
-
-// Wrap the component with AuthProvider
-export default function RecoverAccountPage() {
-  return (
-    <AuthProvider>
-      <RecoverAccountForm />
-    </AuthProvider>
   );
 }

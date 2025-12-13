@@ -1,17 +1,28 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
       "suspicious": {
         "noExplicitAny": "warn"
       },
       "style": {
-        "useShorthandArrayType": "error"
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error",
+        "useConsistentArrayType": { "level": "error", "options": { "syntax": "shorthand" } }
       }
     }
   },
@@ -30,11 +41,12 @@
   },
   "files": {
     "ignore": [
-      "node_modules",
-      ".next",
-      "dist",
-      "build",
-      ".convex",
+      "**/node_modules",
+      "**/.next",
+      "**/.nx",
+      "**/dist",
+      "**/build",
+      "**/.convex",
       "**/.git/**",
       "**/convex/_generated/**"
     ]

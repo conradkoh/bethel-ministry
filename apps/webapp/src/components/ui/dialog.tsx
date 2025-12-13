@@ -4,10 +4,11 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
 import type * as React from 'react';
 
+import { useAllowTouchSelection } from '@/hooks/useAllowTouchSelection';
 import { cn } from '@/lib/utils';
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+  return <DialogPrimitive.Root data-slot="dialog" modal {...props} />;
 }
 
 function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
@@ -43,6 +44,11 @@ function DialogContent({
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  // Fix iOS text selection handles not being draggable
+  // Must be called before react-remove-scroll attaches its listeners
+  // https://github.com/theKashey/react-remove-scroll/pull/144
+  useAllowTouchSelection();
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
