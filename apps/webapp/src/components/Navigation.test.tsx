@@ -70,7 +70,7 @@ describe('Navigation', () => {
 
     const titleLink = screen.getByRole('link', { name: /bethel ministry/i });
     expect(titleLink).toBeInTheDocument();
-    expect(titleLink).toHaveAttribute('href', '/');
+    expect(titleLink).toHaveAttribute('href', '/app');
   });
 
   it('renders login button when user is not authenticated', () => {
