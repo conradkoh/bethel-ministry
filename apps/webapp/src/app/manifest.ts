@@ -5,9 +5,9 @@ export default function manifest(): MetadataRoute.Manifest {
   const startUrl = featureFlags.disableLogin ? '/' : '/app';
 
   return {
-    name: 'Next Convex App',
-    short_name: 'Next Convex',
-    description: 'A Next.js app with Convex backend',
+    name: 'Bethel Ministry',
+    short_name: 'Bethel Ministry',
+    description: 'Bethel Church Ministry Management',
     icons: [
       {
         src: '/appicon-16x16.png',
