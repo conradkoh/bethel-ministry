@@ -1,8 +1,9 @@
-import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { v } from 'convex/values';
-import { getAuthUser } from '../modules/auth/getAuthUser';
+import { SessionIdArg } from 'convex-helpers/server/sessions';
+
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
+import { getAuthUser } from '../modules/auth/getAuthUser';
 
 // Define the Team interface
 export type Team = Doc<'teams'>;
@@ -48,7 +49,7 @@ export const getTeamById = query({
     await getAuthUser(ctx, args);
 
     // Get the team
-    const team = await ctx.db.get(args.id);
+    const team = await ctx.db.get('teams', args.id);
     return team;
   },
 });
@@ -88,14 +89,14 @@ export const getTeamHierarchy = query({
     await getAuthUser(ctx, args);
 
     // Get the team
-    const team = await ctx.db.get(args.id);
+    const team = await ctx.db.get('teams', args.id);
     if (!team) {
       throw new Error('Team not found');
     }
 
     // Helper function to build the hierarchy
     async function buildHierarchy(teamId: Id<'teams'>): Promise<TeamHierarchy> {
-      const currentTeam = await ctx.db.get(teamId);
+      const currentTeam = await ctx.db.get('teams', teamId);
       if (!currentTeam) {
         throw new Error('Team not found');
       }
@@ -166,7 +167,7 @@ export const createTeam = mutation({
 
     // If parentId is provided, verify it exists and get its path
     if (args.parentId) {
-      const parentTeam = await ctx.db.get(args.parentId);
+      const parentTeam = await ctx.db.get('teams', args.parentId);
       if (!parentTeam) {
         throw new Error('Parent team not found');
       }
@@ -190,7 +191,7 @@ export const createTeam = mutation({
     // Update the path to include the team's own ID
     // Format: /parent_id/team_id/ or /team_id/ for root teams
     const updatedPath = `${path}${teamId}/`;
-    await ctx.db.patch(teamId, {
+    await ctx.db.patch('teams', teamId, {
       path: updatedPath,
     });
 
@@ -214,7 +215,7 @@ export const updateTeam = mutation({
     const user = await getAuthUser(ctx, args);
 
     // Get the team
-    const team = await ctx.db.get(args.id);
+    const team = await ctx.db.get('teams', args.id);
     if (!team) {
       throw new Error('Team not found');
     }
@@ -237,7 +238,7 @@ export const updateTeam = mutation({
       updates.timezone = args.timezone;
     }
 
-    await ctx.db.patch(args.id, updates);
+    await ctx.db.patch('teams', args.id, updates);
     return true;
   },
 });
@@ -257,7 +258,7 @@ export const deleteTeam = mutation({
     const user = await getAuthUser(ctx, args);
 
     // Get the team
-    const team = await ctx.db.get(args.id);
+    const team = await ctx.db.get('teams', args.id);
     if (!team) {
       throw new Error('Team not found');
     }
@@ -284,11 +285,11 @@ export const deleteTeam = mutation({
 
     // Delete all descendants first (bottom-up is safest to maintain referential integrity)
     for (const descendant of descendants) {
-      await ctx.db.delete(descendant._id);
+      await ctx.db.delete('teams', descendant._id);
     }
 
     // Finally, delete the team itself
-    await ctx.db.delete(args.id);
+    await ctx.db.delete('teams', args.id);
     return true;
   },
 });
@@ -307,7 +308,7 @@ export const getTeamDescendants = query({
     await getAuthUser(ctx, args);
 
     // Get the team
-    const team = await ctx.db.get(args.id);
+    const team = await ctx.db.get('teams', args.id);
     if (!team) {
       throw new Error('Team not found');
     }

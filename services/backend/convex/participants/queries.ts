@@ -1,5 +1,6 @@
-import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { v } from 'convex/values';
+import { SessionIdArg } from 'convex-helpers/server/sessions';
+
 import { getAuthUser } from '../../modules/auth/getAuthUser';
 import type { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
@@ -20,13 +21,13 @@ export const getParticipantById = query({
     const user = await getAuthUser(ctx, args);
 
     // Get the participant
-    const participant = await ctx.db.get(args.id);
+    const participant = await ctx.db.get('participants', args.id);
     if (!participant) {
       return null;
     }
 
     // Get the team to verify user has access
-    const team = await ctx.db.get(participant.teamId);
+    const team = await ctx.db.get('teams', participant.teamId);
     if (!team) {
       return null;
     }
@@ -53,7 +54,7 @@ export const getTeamParticipants = query({
     const user = await getAuthUser(ctx, args);
 
     // Get the team to verify user has access
-    const team = await ctx.db.get(args.teamId);
+    const team = await ctx.db.get('teams', args.teamId);
     if (!team) {
       return [];
     }

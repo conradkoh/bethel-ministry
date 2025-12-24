@@ -1,5 +1,6 @@
-import { SessionIdArg } from 'convex-helpers/server/sessions';
 import { v } from 'convex/values';
+import { SessionIdArg } from 'convex-helpers/server/sessions';
+
 import { getAuthUser } from '../../modules/auth/getAuthUser';
 import { mutation } from '../_generated/server';
 
@@ -18,7 +19,7 @@ export const createParticipant = mutation({
     const user = await getAuthUser(ctx, args);
 
     // Get the team to verify it exists and user has access
-    const team = await ctx.db.get(args.teamId);
+    const team = await ctx.db.get('teams', args.teamId);
     if (!team) {
       throw new Error('Team not found');
     }
@@ -57,13 +58,13 @@ export const updateParticipant = mutation({
     const user = await getAuthUser(ctx, args);
 
     // Get the participant
-    const participant = await ctx.db.get(args.id);
+    const participant = await ctx.db.get('participants', args.id);
     if (!participant) {
       throw new Error('Participant not found');
     }
 
     // Get the team to verify user has access
-    const team = await ctx.db.get(participant.teamId);
+    const team = await ctx.db.get('teams', participant.teamId);
     if (!team) {
       throw new Error('Team not found');
     }
@@ -86,7 +87,7 @@ export const updateParticipant = mutation({
       updates.joinDate = args.joinDate;
     }
 
-    await ctx.db.patch(args.id, updates);
+    await ctx.db.patch('participants', args.id, updates);
     return true;
   },
 });
@@ -104,13 +105,13 @@ export const deleteParticipant = mutation({
     const user = await getAuthUser(ctx, args);
 
     // Get the participant
-    const participant = await ctx.db.get(args.id);
+    const participant = await ctx.db.get('participants', args.id);
     if (!participant) {
       throw new Error('Participant not found');
     }
 
     // Get the team to verify user has access
-    const team = await ctx.db.get(participant.teamId);
+    const team = await ctx.db.get('teams', participant.teamId);
     if (!team) {
       throw new Error('Team not found');
     }
@@ -121,7 +122,7 @@ export const deleteParticipant = mutation({
     }
 
     // Delete the participant
-    await ctx.db.delete(args.id);
+    await ctx.db.delete('participants', args.id);
     return true;
   },
 });
